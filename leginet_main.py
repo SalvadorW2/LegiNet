@@ -99,16 +99,13 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
                 opacity = 0.7
         ))
         
-    # Creating series for sponsor iterators
-    sponsor_names = network_data["name"]
-    sponsor_colors = network_data["color"]
-    sponsor_parties = network_data["party"]
-    sponsor_roles = network_data["role"]
-    sponsor_districts = network_data["district"]
-    sponsor_bill_number = network_data["number_bills"]
-        
     # Adding source nodes to the graph
-    for sponsor in zip(sponsor_names, sponsor_colors, sponsor_parties, sponsor_roles, sponsor_districts, sponsor_bill_number):
+    for sponsor in zip(network_data["name"],
+                       network_data["color"],
+                       network_data["party"],
+                       network_data["role"],
+                       network_data["district"],
+                       network_data["number_bills"]):
 
         # Assigning iterator names
         sponsor_name = sponsor[0]
@@ -132,15 +129,12 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
             hoverinfo = "text" # Showing node information on hover
         ))
 
-    # Creating series for bill iterators
-    bill_numbers = network_data["bill_number"]
-    bill_titles = network_data["title"]
-    bill_descriptions = network_data["description"]
-    bill_links = network_data["url"]
-    bill_sponsor_number = network_data["number_sponsors"]
-
     # Adding destination nodes to the graph
-    for bill in zip(bill_numbers, bill_titles, bill_descriptions, bill_links, bill_sponsor_number):
+    for bill in zip(network_data["bill_number"],
+                    network_data["title"],
+                    network_data["description"],
+                    network_data["url"],
+                    network_data["number_sponsors"]):
 
         # Assigning iterator names
         bill_id = bill[0]

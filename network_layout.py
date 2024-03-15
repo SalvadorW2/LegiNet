@@ -14,8 +14,6 @@ class Layout:
         html.Div([
             
             html.H2("LegiNet Georgia", style = {"text-align": "center"}),
-
-            html.Br()
         
         ], style = {"padding": 10, "flex": 1}),
 
@@ -34,8 +32,9 @@ class Layout:
                             multi = False,
                             clearable = False,
                             value = "Both",
-                            style = {"width": "40%"}),
+                            style = {"padding": 10, "width": "40%"}),
 
+                html.Br(),
                 html.Br(),
 
                     # Party input
@@ -49,8 +48,9 @@ class Layout:
                             multi = False,
                             clearable = False,
                             value = "Both",
-                            style = {"width": "40%"}),
+                            style = {"padding": 10, "width": "40%"}),
 
+                html.Br(),
                 html.Br(),
 
                     # Keyword Input
@@ -62,6 +62,7 @@ class Layout:
                         value = "mental health"),
 
                 html.Br(),
+                html.Br(),
 
                     # Legislator name input
 
@@ -72,6 +73,7 @@ class Layout:
                         value = ''),
 
                 html.Br(),
+                html.Br(),
 
                     # Bill number input
 
@@ -81,7 +83,7 @@ class Layout:
                         type = "text",
                         value = '')
 
-            ],  style = {"width": "100%", "height": "100vh", "padding": 10, "flex": 1}),
+            ],  style = {"width": "20%", "height": "100vh", "padding": 10, "flex": 1}),
 
             html.Div([
 
@@ -92,7 +94,7 @@ class Layout:
                         config = {"scrollZoom": True}
                 )
 
-            ], style = {"padding": 10, "flex": 1})
+            ], style = {"padding": 10, "width": "80%"})
 
         ], style = {"display": "flex", "flexDirection": "row"})
 
