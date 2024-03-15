@@ -1,8 +1,9 @@
 ### Loading Packages ###
 
 import dash
-from dash import dcc, html, Input, Output
-from network_data import Data
+from dash import Input, Output
+from network_layout import Layout
+from network_data import Processing, Filtering
 import plotly.graph_objs as go
 import networkx as nx
 
@@ -13,101 +14,16 @@ import networkx as nx
 data_directory = r"C:/Users/scwag/Desktop/W/Network_Analysis/2023-2024_Regular_Session"
 
 # Processing data
-sponsor_data = Data.process_data(directory = data_directory)
+sponsor_data = Processing.process_data(directory = data_directory)
 
 
 ### Configuring App Layout ###
 
 # Initializing app
-app = dash.Dash(__name__)
+app = dash.Dash(name = __name__)
 
 # Defining app layout
-app.layout = html.Div(
-
-    # Configuring app style
-    style = {"width'": "100%",
-             "height": "100vh"},
-
-    children = [
-
-        # Graph name
-        html.H2("LegiNet Georgia", style = {"text-align": "center"}),
-
-        # Legislative chamber input
-        html.Div([
-
-            html.Label(["Select legislative chamber: "], style = {"font-weight": "bold", "text-align": "center"}),
-
-            dcc.Dropdown(id = "chamber_input",
-                        options = [{"label": "Both", "value": "Both"},
-                                   {"label": "House", "value": "Representative"},
-                                   {"label": "Senate", "value": "Senator"}],
-                        multi = False,
-                        clearable = False,
-                        value = "Both",
-                        style = {"width": "40%"})
-
-        ]),
-
-        # Party input
-        html.Div([
-
-            html.Label(["Select party: "], style = {"font-weight": "bold", "text-align": "center"}),
-
-            dcc.Dropdown(id = "party_input",
-                        options = [{"label": "Both", "value": "Both"},
-                                   {"label": "Democrat", "value": "Democrat"},
-                                   {"label": "Republican", "value": "Republican"}],
-                        multi = False,
-                        clearable = False,
-                        value = "Both",
-                        style = {"width": "40%"})
-
-        ]),
-
-        # Keyword Input
-        html.Div([
-
-            html.Label(["Enter keyword: "], style = {"font-weight": "bold", "text-align": "center"}),
-        
-            dcc.Input(id = "keyword_input",
-                      type = "text",
-                      value = "mental health")
-
-        ]),
-
-        # Legislator name input
-        html.Div([
-
-            html.Label(["Enter legislator name: "], style = {"font-weight": "bold", "text-align": "center"}),
-        
-            dcc.Input(id = "legislator_name_input",
-                      type = "text",
-                      value = '')
-
-        ]),
-
-        # Bill number input
-        html.Div([
-
-            html.Label(["Enter bill number: "], style = {"font-weight": "bold", "text-align": "center"}),
-        
-            dcc.Input(id = "bill_number_input",
-                      type = "text",
-                      value = '')
-
-        ]),
-
-        # Graph output
-        dcc.Graph(id = "network-graph",
-                  style = {"height": "90%", "width": "100%"},
-                  # figure = {"layout": {"dragmode": "pan"}},
-                  config = {"scrollZoom": True}
-        )
-
-    ]
-
-)
+app.layout = Layout.ui_layout
 
 
 ### Configuring App Functionality ###
@@ -132,35 +48,22 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
     ### Subsetting Based on User Input ###
 
     # Subsetting based on chamber
-    if  chosen_chamber == "Both":
+    network_data = Filtering.chamber_filter(data = network_data, selection = chosen_chamber)
 
-        network_data = network_data
-
-    else:
-
-        network_data = network_data.loc[network_data["role"].str.contains(chosen_chamber, case = False)]
-
-    # Subsetting based on chamber
-    if  chosen_party == "Both":
-
-        network_data = network_data
-
-    else:
-
-        network_data = network_data.loc[network_data["party"].str.contains(chosen_party, case = False)]
+    # Subsetting based on party
+    network_data = Filtering.party_filter(data = network_data, selection = chosen_party)
 
     # Subsetting based on keyword
-    network_data = network_data.loc[network_data["description"].str.contains(chosen_keyword, case = False)]
+    network_data = Filtering.keyword_filter(data = network_data, selection = chosen_keyword)
 
     # Subsettign based on on legislator name
-    network_data = network_data.loc[network_data["name"].str.contains(chosen_legislator, case = False)]
+    network_data = Filtering.name_filter(data = network_data, selection = chosen_legislator)
 
     # Subsetting based on bill number
-    network_data = network_data.loc[network_data["bill_number"].str.contains(chosen_bill, case = False)]
+    network_data = Filtering.bill_filter(data = network_data, selection = chosen_bill)
 
 
-    ### Wrapping Title and Description Text ###
-
+    # Wrapping title and description text
     network_data["title"] = network_data["title"].str.wrap(90)
     network_data["title"] = network_data["title"].apply(lambda x: x.replace("\n", "<br>"))
 
@@ -175,6 +78,7 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
                                     source = "name",
                                     target = "bill_number")
     
+    # Assigning network physics
     pos = nx.spring_layout(graph)
 
 
@@ -192,7 +96,7 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
                 mode = "lines",
                 line = dict(color = "black",
                             width = 0.5),
-                opacity = 0.5
+                opacity = 0.7
         ))
         
     # Creating series for sponsor iterators
@@ -204,10 +108,9 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
     sponsor_bill_number = network_data["number_bills"]
         
     # Adding source nodes to the graph
-    sponsor_nodes = zip(sponsor_names, sponsor_colors, sponsor_parties, sponsor_roles, sponsor_districts, sponsor_bill_number)
+    for sponsor in zip(sponsor_names, sponsor_colors, sponsor_parties, sponsor_roles, sponsor_districts, sponsor_bill_number):
 
-    for sponsor in sponsor_nodes:
-
+        # Assigning iterator names
         sponsor_name = sponsor[0]
         sponsor_color = sponsor[1]
         sponsor_party = sponsor[2]
@@ -215,6 +118,7 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
         sponsor_district = sponsor[4]
         no_bills = sponsor[5]
 
+        # Adding nodes
         figure.add_trace(go.Scatter(
             x = [pos[sponsor_name][0]],
             y = [pos[sponsor_name][1]],
@@ -236,16 +140,16 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
     bill_sponsor_number = network_data["number_sponsors"]
 
     # Adding destination nodes to the graph
-    bill_nodes = zip(bill_numbers, bill_titles, bill_descriptions, bill_links, bill_sponsor_number)
+    for bill in zip(bill_numbers, bill_titles, bill_descriptions, bill_links, bill_sponsor_number):
 
-    for bill in bill_nodes:
-
+        # Assigning iterator names
         bill_id = bill[0]
         bill_title = bill[1]
         bill_description = bill[2]
         bill_link = bill[3]
         no_sponsors = bill[4]
 
+        # Adding nodes
         figure.add_trace(go.Scatter(
             x = [pos[bill_id][0]],
             y = [pos[bill_id][1]],

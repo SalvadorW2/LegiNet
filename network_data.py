@@ -5,7 +5,7 @@ import pandas as pd
 
 ### Function for Processing Data ###
 
-class Data:
+class Processing:
 
     def process_data(directory: str) -> pd.DataFrame:
 
@@ -71,3 +71,52 @@ class Data:
         sponsor_data["number_bills_used"] = sponsor_data["number_bills"]
 
         return sponsor_data
+    
+
+class Filtering:
+
+    def chamber_filter(data: pd.DataFrame, selection: str) -> pd.DataFrame:
+
+        if  selection == "Both":
+
+            data = data
+
+        else:
+
+            data = data.loc[data["role"].str.contains(selection, case = False)]
+
+        return data
+
+
+    def party_filter(data: pd.DataFrame, selection: str) -> pd.DataFrame:
+
+        if  selection == "Both":
+
+            data = data
+
+        else:
+
+            data = data.loc[data["party"].str.contains(selection, case = False)]
+
+        return data
+
+
+    def keyword_filter(data: pd.DataFrame, selection: str) -> pd.DataFrame:
+
+        data = data.loc[data["description"].str.contains(selection, case = False)]
+
+        return data
+    
+
+    def name_filter(data: pd.DataFrame, selection: str) -> pd.DataFrame:
+
+        data = data.loc[data["name"].str.contains(selection, case = False)]
+
+        return data
+    
+
+    def bill_filter(data: pd.DataFrame, selection: str) -> pd.DataFrame:
+
+        data = data.loc[data["bill_number"].str.contains(selection, case = False)]
+
+        return data
