@@ -26,6 +26,18 @@ app = dash.Dash(name = __name__)
 app.layout = Layout.ui_layout
 
 
+### Creating Graph ###
+
+# Creating graph from dataframe
+full_graph = nx.from_pandas_edgelist(df = sponsor_data,
+                                     source = "name",
+                                     target = "bill_number"
+                                     )
+
+# Assigning network physics
+## position = nx.spring_layout(full_graph)
+
+
 ### Configuring App Functionality ###
 
 # Linking input and output with "callback" decorator
@@ -70,16 +82,15 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
     network_data["description"] = network_data["description"].str.wrap(90)
     network_data["description"] = network_data["description"].apply(lambda x: x.replace("\n", "<br>"))
 
-
-    ### Creating Graph ###
-
+    # Creating subgraph
     # Creating graph from dataframe
-    graph = nx.from_pandas_edgelist(df = network_data,
-                                    source = "name",
-                                    target = "bill_number")
-    
+    subgraph = nx.from_pandas_edgelist(df = network_data,
+                                       source = "name",
+                                       target = "bill_number"
+                                       )
+
     # Assigning network physics
-    pos = nx.spring_layout(graph)
+    position = nx.spring_layout(subgraph)
 
 
     ### Creating Graph Figure ###
@@ -88,17 +99,17 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
     figure = go.Figure()
 
     # Adding edges
-    for edge in graph.edges():
+    for edge in subgraph.edges():
         figure.add_trace(
             go.Scatter(
-                x = [pos[edge[0]][0], pos[edge[1]][0]],
-                y = [pos[edge[0]][1], pos[edge[1]][1]],
+                x = [position[edge[0]][0], position[edge[1]][0]],
+                y = [position[edge[0]][1], position[edge[1]][1]],
                 mode = "lines",
                 line = dict(color = "black",
                             width = 0.5),
                 opacity = 0.7
         ))
-        
+    
     # Adding source nodes to the graph
     for sponsor in zip(network_data["name"],
                        network_data["color"],
@@ -117,8 +128,8 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
 
         # Adding nodes
         figure.add_trace(go.Scatter(
-            x = [pos[sponsor_name][0]],
-            y = [pos[sponsor_name][1]],
+            x = [position[sponsor_name][0]],
+            y = [position[sponsor_name][1]],
             mode = "markers",
             marker = dict(
                 size = 10,
@@ -145,8 +156,8 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
 
         # Adding nodes
         figure.add_trace(go.Scatter(
-            x = [pos[bill_id][0]],
-            y = [pos[bill_id][1]],
+            x = [position[bill_id][0]],
+            y = [position[bill_id][1]],
             mode = "markers",
             marker = dict(
                 size = 10,
