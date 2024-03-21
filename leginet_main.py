@@ -46,40 +46,56 @@ full_graph = nx.from_pandas_edgelist(df = sponsor_data,
 
     [Input(component_id = "keyword_input", component_property = "value"),
      Input(component_id = "legislator_name_input", component_property = "value"),
-     Input(component_id = "bill_number_input", component_property = "value"),
-     Input(component_id = "chamber_input", component_property = "value"),
-     Input(component_id = "party_input", component_property = "value")]
+     Input(component_id = "bill_number_input", component_property = "value")]
 ) # Function for updating network
-def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chamber, chosen_party):
+def update_network(chosen_keyword, chosen_legislator, chosen_bill,
+                   # chosen_chamber, chosen_party
+                   ):
 
     # Copying dataframe
     network_data = sponsor_data.copy()
 
 
     ### Subsetting Based on User Input ###
-    
-    if  chosen_chamber == "Both":
+
+    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '') and ((chosen_bill is not None) or (chosen_bill.strip() != ''))):
+
+        network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword)) &
+                                        (network_data["name"].str.contains(chosen_legislator, case = False)) &
+                                        (network_data["bill_number"].str.contains(chosen_bill, case = False))]
+
+    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+
+        network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword, case = False)) &
+                                        (network_data["name"].str.contains(chosen_legislator, case = False))]
+
+    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
+
+        network_data = network_data.loc[(network_data["name"].str.contains(chosen_legislator, case = False)) &
+                                        (network_data["bill_number"].str.contains(chosen_bill, case = False))]
+
+    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
+
+        network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword, case = False)) &
+                                        (network_data["bill_number"].str.contains(chosen_bill, case = False))]
+
+    # Default
+    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+
+        network_data = network_data.loc[network_data["description"].str.contains(chosen_keyword, case = False)]
+
+    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+
+        network_data = network_data.loc[network_data["name"].str.contains(chosen_legislator, case = False)]
+
+    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
+
+        network_data = network_data.loc[network_data["bill_number"].str.contains(chosen_bill, case = False)]
+
+    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
 
         network_data = network_data
 
-    else:
-
-        network_data = network_data.loc[network_data["role"].str.contains(chosen_chamber, case = False)]
-
-    if  chosen_party == "Both":
-
-        network_data = network_data
-
-    else:
-
-        network_data = network_data.loc[network_data["party"].str.contains(chosen_party, case = False)]
-
-
-    network_data = network_data.loc[network_data["description"].str.contains(chosen_keyword, case = False)]
-
-    network_data = network_data.loc[network_data["name"].str.contains(chosen_legislator, case = False)]
-
-    network_data = network_data.loc[network_data["bill_number"].str.contains(chosen_bill, case = False)]
 
 
     # Wrapping title and description text

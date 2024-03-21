@@ -21,39 +21,7 @@ class Layout:
 
             html.Div([
 
-                # Legislative chamber input
-
-                html.Label(["Chamber: "], style = {"font-weight": "bold", "text-align": "center"}),
-
-                dcc.Dropdown(id = "chamber_input",
-                            options = [{"label": "Both", "value": "Both"},
-                                    {"label": "House", "value": "Representative"},
-                                    {"label": "Senate", "value": "Senator"}],
-                            multi = False,
-                            clearable = False,
-                            value = "Both",
-                            style = {"padding": 10, "width": "40%"}),
-
-                html.Br(),
-                html.Br(),
-
-                    # Party input
-
-                html.Label(["Party: "], style = {"font-weight": "bold", "text-align": "center"}),
-
-                dcc.Dropdown(id = "party_input",
-                            options = [{"label": "Both", "value": "Both"},
-                                    {"label": "Democrat", "value": "Democrat"},
-                                    {"label": "Republican", "value": "Republican"}],
-                            multi = False,
-                            clearable = False,
-                            value = "Both",
-                            style = {"padding": 10, "width": "40%"}),
-
-                html.Br(),
-                html.Br(),
-
-                    # Keyword Input
+        # Keyword Input
 
                 html.Label(["Keyword: "], style = {"font-weight": "bold", "text-align": "center"}),
             
