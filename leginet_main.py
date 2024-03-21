@@ -3,7 +3,7 @@
 import dash
 from dash import Input, Output
 from network_layout import Layout
-from network_data import Processing, Graph, Filtering
+from network_data import Processing, Graph
 import plotly.graph_objs as go
 import networkx as nx
 
@@ -52,27 +52,34 @@ full_graph = nx.from_pandas_edgelist(df = sponsor_data,
 ) # Function for updating network
 def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chamber, chosen_party):
 
-
-    ### Copying Dataframe ###
+    # Copying dataframe
     network_data = sponsor_data.copy()
 
 
     ### Subsetting Based on User Input ###
+    
+    if  chosen_chamber == "Both":
 
-    # Subsetting based on chamber
-    network_data = Filtering.chamber_filter(data = network_data, selection = chosen_chamber)
+        network_data = network_data
 
-    # Subsetting based on party
-    network_data = Filtering.party_filter(data = network_data, selection = chosen_party)
+    else:
 
-    # Subsetting based on keyword
-    network_data = Filtering.keyword_filter(data = network_data, selection = chosen_keyword)
+        network_data = network_data.loc[network_data["role"].str.contains(chosen_chamber, case = False)]
 
-    # Subsettign based on on legislator name
-    network_data = Filtering.name_filter(data = network_data, selection = chosen_legislator)
+    if  chosen_party == "Both":
 
-    # Subsetting based on bill number
-    network_data = Filtering.bill_filter(data = network_data, selection = chosen_bill)
+        network_data = network_data
+
+    else:
+
+        network_data = network_data.loc[network_data["party"].str.contains(chosen_party, case = False)]
+
+
+    network_data = network_data.loc[network_data["description"].str.contains(chosen_keyword, case = False)]
+
+    network_data = network_data.loc[network_data["name"].str.contains(chosen_legislator, case = False)]
+
+    network_data = network_data.loc[network_data["bill_number"].str.contains(chosen_bill, case = False)]
 
 
     # Wrapping title and description text
