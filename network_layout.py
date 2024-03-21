@@ -96,6 +96,8 @@ class Layout:
 
             ], style = {"padding": 10, "width": "80%"})
 
-        ], style = {"display": "flex", "flexDirection": "row"})
+        ], style = {"display": "flex", "flexDirection": "row"}) # ,
+
+        # html.Div(id = "output-div")
 
     ], style = {"display": "flex", "flexDirection": "column"})

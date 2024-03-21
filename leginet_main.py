@@ -3,7 +3,7 @@
 import dash
 from dash import Input, Output
 from network_layout import Layout
-from network_data import Processing, Filtering
+from network_data import Processing, Graph, Filtering
 import plotly.graph_objs as go
 import networkx as nx
 
@@ -83,103 +83,24 @@ def update_network(chosen_keyword, chosen_legislator, chosen_bill, chosen_chambe
     network_data["description"] = network_data["description"].apply(lambda x: x.replace("\n", "<br>"))
 
     # Creating subgraph
-    # Creating graph from dataframe
-    subgraph = nx.from_pandas_edgelist(df = network_data,
-                                       source = "name",
-                                       target = "bill_number"
-                                       )
+    figure = Graph.create_graph(network_data)
 
-    # Assigning network physics
-    position = nx.spring_layout(subgraph)
-
-
-    ### Creating Graph Figure ###
-
-    # Creating network graph figure
-    figure = go.Figure()
-
-    # Adding edges
-    for edge in subgraph.edges():
-        figure.add_trace(
-            go.Scatter(
-                x = [position[edge[0]][0], position[edge[1]][0]],
-                y = [position[edge[0]][1], position[edge[1]][1]],
-                mode = "lines",
-                line = dict(color = "black",
-                            width = 0.5),
-                opacity = 0.7
-        ))
-    
-    # Adding source nodes to the graph
-    for sponsor in zip(network_data["name"],
-                       network_data["color"],
-                       network_data["party"],
-                       network_data["role"],
-                       network_data["district"],
-                       network_data["number_bills"]):
-
-        # Assigning iterator names
-        sponsor_name = sponsor[0]
-        sponsor_color = sponsor[1]
-        sponsor_party = sponsor[2]
-        sponsor_role = sponsor[3]
-        sponsor_district = sponsor[4]
-        no_bills = sponsor[5]
-
-        # Adding nodes
-        figure.add_trace(go.Scatter(
-            x = [position[sponsor_name][0]],
-            y = [position[sponsor_name][1]],
-            mode = "markers",
-            marker = dict(
-                size = 10,
-                symbol = "circle",
-                color = sponsor_color
-            ),
-            text = f"<b>Name:</b> {sponsor_name}<br><b>Party:</b> {sponsor_party}<br><b>Role:</b> {sponsor_role}<br><b>District:</b> {sponsor_district}<br><b>Number of Bills Sponsored:<b> {no_bills}",
-            hoverinfo = "text" # Showing node information on hover
-        ))
-
-    # Adding destination nodes to the graph
-    for bill in zip(network_data["bill_number"],
-                    network_data["title"],
-                    network_data["description"],
-                    network_data["url"],
-                    network_data["number_sponsors"]):
-
-        # Assigning iterator names
-        bill_id = bill[0]
-        bill_title = bill[1]
-        bill_description = bill[2]
-        bill_link = bill[3]
-        no_sponsors = bill[4]
-
-        # Adding nodes
-        figure.add_trace(go.Scatter(
-            x = [position[bill_id][0]],
-            y = [position[bill_id][1]],
-            mode = "markers",
-            marker = dict(
-                size = 10,
-                symbol = "square",
-                color = "green"
-            ),
-            text = f"<b>Bill Number:</b> {bill_id}<br><b>Bill Title:</b> {bill_title}<br><b>Bill Description:</b> {bill_description}<br><b>URL: </b><a href = \"{bill_link}\">{bill_link}</a><br><b>Number of Sponsors: </b>{no_sponsors}",
-            hoverinfo = "text" # Showing node information on hover
-        ))
-
-    # Updating graph layout
-    figure.update_layout(
-        showlegend = False,
-        xaxis = dict(visible = True, showticklabels = True),
-        yaxis = dict(visible = True, showticklabels = True)
-    )
-
-    # Configuring figure layout
-    figure.update_layout(modebar_remove = ["zoom", "lasso2d", "select2d"])
-    
     # Returning figure
     return [go.Figure(data = figure)]
+
+
+# @app.callback([Output("output-div", "children")],
+#               [Input("network-graph", "clickData")]
+# )
+# def display_click_data(clickData):
+#     if clickData and clickData["points"]:
+#         point = clickData["points"][0]
+#         if point["curveNumber"] == 0:  # Check if the point belongs to the scatter plot
+#             if "doubleclick" in point and point["doubleclick"]:
+#                 return f"Double-clicked on point ({point['x']}, {point['y']})"
+#             else:
+#                 return f"Clicked on point ({point['x']}, {point['y']})"
+#     return ""
 
 
 ### Running App ###

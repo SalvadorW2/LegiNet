@@ -1,6 +1,8 @@
 ### Loading Package ###
 
 import pandas as pd
+import networkx as nx
+import plotly.graph_objs as go
 
 
 ### Function for Processing Data ###
@@ -73,6 +75,107 @@ class Processing:
         return sponsor_data
     
 
+class Graph:
+
+    def create_graph(data: pd.DataFrame):
+        # Creating graph from dataframe
+        subgraph = nx.from_pandas_edgelist(df = data,
+                                           source = "name",
+                                           target = "bill_number"
+                                          )
+
+        # Assigning network physics
+        position = nx.spring_layout(subgraph)
+
+
+        ### Creating Graph Figure ###
+
+        # Creating network graph figure
+        figure = go.Figure()
+
+        # Adding edges
+        for edge in subgraph.edges():
+            figure.add_trace(
+                go.Scatter(
+                    x = [position[edge[0]][0], position[edge[1]][0]],
+                    y = [position[edge[0]][1], position[edge[1]][1]],
+                    mode = "lines",
+                    line = dict(color = "black",
+                                width = 0.5),
+                    opacity = 0.7
+            ))
+        
+        # Adding source nodes to the graph
+        for sponsor in zip(data["name"],
+                           data["color"],
+                           data["party"],
+                           data["role"],
+                           data["district"],
+                           data["number_bills"]):
+
+            # Assigning iterator names
+            sponsor_name = sponsor[0]
+            sponsor_color = sponsor[1]
+            sponsor_party = sponsor[2]
+            sponsor_role = sponsor[3]
+            sponsor_district = sponsor[4]
+            no_bills = sponsor[5]
+
+            # Adding nodes
+            figure.add_trace(go.Scatter(
+                x = [position[sponsor_name][0]],
+                y = [position[sponsor_name][1]],
+                mode = "markers",
+                marker = dict(
+                    size = 10,
+                    symbol = "circle",
+                    color = sponsor_color
+                ),
+                text = f"<b>Name:</b> {sponsor_name}<br><b>Party:</b> {sponsor_party}<br><b>Role:</b> {sponsor_role}<br><b>District:</b> {sponsor_district}<br><b>Number of Bills Sponsored:<b> {no_bills}",
+                hoverinfo = "text" # Showing node information on hover
+            ))
+
+        # Adding destination nodes to the graph
+        for bill in zip(data["bill_number"],
+                        data["title"],
+                        data["description"],
+                        data["url"],
+                        data["number_sponsors"]):
+
+            # Assigning iterator names
+            bill_id = bill[0]
+            bill_title = bill[1]
+            bill_description = bill[2]
+            bill_link = bill[3]
+            no_sponsors = bill[4]
+
+            # Adding nodes
+            figure.add_trace(go.Scatter(
+                x = [position[bill_id][0]],
+                y = [position[bill_id][1]],
+                mode = "markers",
+                marker = dict(
+                    size = 10,
+                    symbol = "square",
+                    color = "green"
+                ),
+                text = f"<b>Bill Number:</b> {bill_id}<br><b>Bill Title:</b> {bill_title}<br><b>Bill Description:</b> {bill_description}<br><b>URL: </b><a href = \"{bill_link}\">{bill_link}</a><br><b>Number of Sponsors: </b>{no_sponsors}",
+                hoverinfo = "text" # Showing node information on hover
+            ))
+
+        # Updating graph layout
+        figure.update_layout(
+            showlegend = False,
+            xaxis = dict(visible = True, showticklabels = True),
+            yaxis = dict(visible = True, showticklabels = True)
+        )
+
+        # Configuring figure layout
+        figure.update_layout(modebar_remove = ["zoom", "lasso2d", "select2d"])
+    
+        # Returning finished graph
+        return figure
+    
 class Filtering:
 
     def chamber_filter(data: pd.DataFrame, selection: str) -> pd.DataFrame:
