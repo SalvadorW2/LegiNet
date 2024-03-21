@@ -21,7 +21,7 @@ class Layout:
 
             html.Div([
 
-        # Keyword Input
+                # Keyword Input
 
                 html.Label(["Keyword: "], style = {"font-weight": "bold", "text-align": "center"}),
             
@@ -32,7 +32,7 @@ class Layout:
                 html.Br(),
                 html.Br(),
 
-                    # Legislator name input
+                # Legislator name input
 
                 html.Label(["Legislator: "], style = {"font-weight": "bold", "text-align": "center"}),
             
@@ -43,13 +43,18 @@ class Layout:
                 html.Br(),
                 html.Br(),
 
-                    # Bill number input
+                # Bill number input
 
                 html.Label(["Bill: "], style = {"font-weight": "bold", "text-align": "center"}),
             
                 dcc.Input(id = "bill_number_input",
                         type = "text",
-                        value = '')
+                        value = ''),
+
+                html.Br(),
+                html.Br(),
+
+                html.Button("Apply Changes", id = "apply_button", n_clicks = 0)
 
             ],  style = {"width": "20%", "height": "100vh", "padding": 10, "flex": 1}),
 

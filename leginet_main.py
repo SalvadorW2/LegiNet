@@ -1,9 +1,9 @@
 ### Loading Packages ###
 
 import dash
-from dash import Input, Output
+from dash import Input, Output, State
 from network_layout import Layout
-from network_data import Processing, Graph
+from network_data import Processing, Graph, Text
 import plotly.graph_objs as go
 import networkx as nx
 
@@ -43,73 +43,65 @@ full_graph = nx.from_pandas_edgelist(df = sponsor_data,
 # Linking input and output with "callback" decorator
 @app.callback(
     [Output(component_id = "network-graph", component_property = "figure")],
-
-    [Input(component_id = "keyword_input", component_property = "value"),
-     Input(component_id = "legislator_name_input", component_property = "value"),
-     Input(component_id = "bill_number_input", component_property = "value")]
+    [Input(component_id = "apply_button", component_property = "n_clicks")],
+    [State(component_id = "keyword_input", component_property = "value"),
+     State(component_id = "legislator_name_input", component_property = "value"),
+     State(component_id = "bill_number_input", component_property = "value")]
 ) # Function for updating network
-def update_network(chosen_keyword, chosen_legislator, chosen_bill,
-                   # chosen_chamber, chosen_party
-                   ):
+def update_network(n_clicks, chosen_keyword, chosen_legislator, chosen_bill):
 
-    # Copying dataframe
-    network_data = sponsor_data.copy()
+    if n_clicks != None:
 
+        # Copying dataframe
+        network_data = sponsor_data.copy()
 
-    ### Subsetting Based on User Input ###
+        # Subsetting based on user input
+        if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '') and ((chosen_bill is not None) or (chosen_bill.strip() != ''))):
 
-    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '') and ((chosen_bill is not None) or (chosen_bill.strip() != ''))):
+            network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword)) &
+                                            (network_data["name"].str.contains(chosen_legislator, case = False)) &
+                                            (network_data["bill_number"].str.contains(chosen_bill, case = False))]
 
-        network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword)) &
-                                        (network_data["name"].str.contains(chosen_legislator, case = False)) &
-                                        (network_data["bill_number"].str.contains(chosen_bill, case = False))]
+        if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
 
-    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+            network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword, case = False)) &
+                                            (network_data["name"].str.contains(chosen_legislator, case = False))]
 
-        network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword, case = False)) &
-                                        (network_data["name"].str.contains(chosen_legislator, case = False))]
+        if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
 
-    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
+            network_data = network_data.loc[(network_data["name"].str.contains(chosen_legislator, case = False)) &
+                                            (network_data["bill_number"].str.contains(chosen_bill, case = False))]
 
-        network_data = network_data.loc[(network_data["name"].str.contains(chosen_legislator, case = False)) &
-                                        (network_data["bill_number"].str.contains(chosen_bill, case = False))]
+        if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
 
-    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
+            network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword, case = False)) &
+                                            (network_data["bill_number"].str.contains(chosen_bill, case = False))]
 
-        network_data = network_data.loc[(network_data["description"].str.contains(chosen_keyword, case = False)) &
-                                        (network_data["bill_number"].str.contains(chosen_bill, case = False))]
+        # Default
+        if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
 
-    # Default
-    if ((chosen_keyword is not None) or (chosen_keyword.strip() != '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+            network_data = network_data.loc[network_data["description"].str.contains(chosen_keyword, case = False)]
 
-        network_data = network_data.loc[network_data["description"].str.contains(chosen_keyword, case = False)]
+        if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
 
-    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is not None) or (chosen_legislator.strip() != '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+            network_data = network_data.loc[network_data["name"].str.contains(chosen_legislator, case = False)]
 
-        network_data = network_data.loc[network_data["name"].str.contains(chosen_legislator, case = False)]
+        if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
 
-    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is not None) or (chosen_bill.strip() != '')):
+            network_data = network_data.loc[network_data["bill_number"].str.contains(chosen_bill, case = False)]
 
-        network_data = network_data.loc[network_data["bill_number"].str.contains(chosen_bill, case = False)]
+        if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
 
-    if ((chosen_keyword is None) or (chosen_keyword.strip() == '')) and ((chosen_legislator is None) or (chosen_legislator.strip() == '')) and ((chosen_bill is None) or (chosen_bill.strip() == '')):
+            network_data = network_data
 
-        network_data = network_data
+        # Wrapping title and description text
+        network_data = Text.wrap_text(network_data)
 
+        # Creating subgraph
+        figure = Graph.create_graph(network_data)
 
-
-    # Wrapping title and description text
-    network_data["title"] = network_data["title"].str.wrap(90)
-    network_data["title"] = network_data["title"].apply(lambda x: x.replace("\n", "<br>"))
-
-    network_data["description"] = network_data["description"].str.wrap(90)
-    network_data["description"] = network_data["description"].apply(lambda x: x.replace("\n", "<br>"))
-
-    # Creating subgraph
-    figure = Graph.create_graph(network_data)
-
-    # Returning figure
-    return [go.Figure(data = figure)]
+        # Returning figure
+        return [go.Figure(data = figure)]
 
 
 # @app.callback([Output("output-div", "children")],

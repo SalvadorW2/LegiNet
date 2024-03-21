@@ -175,3 +175,16 @@ class Graph:
     
         # Returning finished graph
         return figure
+    
+
+class Text:
+
+    def wrap_text(data: pd.DataFrame) -> pd.DataFrame:
+
+        data["title"] = data["title"].str.wrap(90)
+        data["title"] = data["title"].apply(lambda x: x.replace("\n", "<br>"))
+
+        data["description"] = data["description"].str.wrap(90)
+        data["description"] = data["description"].apply(lambda x: x.replace("\n", "<br>"))
+
+        return data
